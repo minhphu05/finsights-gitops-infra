@@ -24,6 +24,22 @@ jobs:
         with:
           version: 'v1.30.0'
 
+      - name: Open SSH Tunnel to K3s API (if SSH_PRIVATE_KEY provided)
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          if [ -n "${SSH_PRIVATE_KEY}" ]; then
+            echo "Setting up secure SSH Tunnel to VPS Node 1 (port 26567)..."
+            mkdir -p ~/.ssh
+            echo "${SSH_PRIVATE_KEY}" > ~/.ssh/finsights_vps
+            chmod 600 ~/.ssh/finsights_vps
+            ssh -i ~/.ssh/finsights_vps -o StrictHostKeyChecking=no -p 26567 -N -f -L 6443:127.0.0.1:6443 root@103.249.117.232
+            sleep 2
+            echo "✅ SSH Tunnel established: localhost:6443 -> VPS:6443"
+          else
+            echo "ℹ️ SSH_PRIVATE_KEY not provided, using direct connection from kubeconfig."
+          fi
+
       - name: Configure Kubeconfig
         env:
           KUBECONFIG_DATA: ${{ secrets.KUBECONFIG }}
