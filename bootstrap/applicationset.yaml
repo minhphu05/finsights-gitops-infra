@@ -7,7 +7,7 @@ spec:
   goTemplate: true
   generators:
     - git:
-        repoURL: https://github.com/finsights-hub/finsights-gitops-infra.git
+        repoURL: https://github.com/minhphu05/finsights-gitops-infra.git
         revision: main
         directories:
           - path: "addons/*"
@@ -18,7 +18,7 @@ spec:
     spec:
       project: finsights-infra
       source:
-        repoURL: https://github.com/finsights-hub/finsights-gitops-infra.git
+        repoURL: https://github.com/minhphu05/finsights-gitops-infra.git
         targetRevision: main
         path: '{{ .path.path }}'
         helm:
