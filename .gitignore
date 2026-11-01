@@ -1,0 +1,22 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Helm
+*.tgz
+*.lock
+.helm/
+
+# Temporary / Secrets
+*.tmp
+*.bak
+*.key
+*.pem
+secrets/
+.env

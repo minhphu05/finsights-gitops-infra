@@ -1,0 +1,89 @@
+name: Bootstrap & Sync GitOps Infra
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'bootstrap/**'
+      - 'addons/**'
+      - '.github/workflows/gitops-deploy.yml'
+  workflow_dispatch:
+
+jobs:
+  bootstrap-argocd:
+    name: Bootstrap ArgoCD & Cluster Add-ons
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.30.0'
+
+      - name: Configure Kubeconfig
+        env:
+          KUBECONFIG_DATA: ${{ secrets.KUBECONFIG }}
+        run: |
+          if [ -z "${KUBECONFIG_DATA}" ]; then
+            echo "❌ Error: Secret KUBECONFIG is not set in GitHub repository secrets!"
+            exit 1
+          fi
+          mkdir -p ~/.kube
+          echo "${KUBECONFIG_DATA}" > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Verify Kubernetes Connectivity
+        run: |
+          echo "Connecting to K3s cluster on VPS..."
+          kubectl cluster-info
+          kubectl get nodes -o wide
+
+      - name: Deploy ArgoCD (Offline Kustomize)
+        run: |
+          echo "Deploying ArgoCD v2.13.3..."
+          kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
+          kubectl apply -k bootstrap/00-install-argocd
+
+      - name: Wait for ArgoCD Server to be Ready
+        run: |
+          echo "Waiting for argocd-server pod..."
+          kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=argocd-server -n argocd --timeout=300s
+          kubectl get pods -n argocd
+
+      - name: Configure Git Credentials Secret (Optional)
+        env:
+          GIT_PAT_TOKEN: ${{ secrets.GIT_PAT_TOKEN }}
+        run: |
+          if [ -n "${GIT_PAT_TOKEN}" ]; then
+            echo "Configuring private repository credentials for ArgoCD..."
+            sed -i "s|<YOUR_GITHUB_OR_GITLAB_PAT_TOKEN>|${GIT_PAT_TOKEN}|g" bootstrap/01-git-credentials/argocd-git-credentials.yaml
+            kubectl apply -f bootstrap/01-git-credentials/argocd-git-credentials.yaml
+          else
+            echo "GIT_PAT_TOKEN secret not set. Skipping private git credentials (public repos only)."
+          fi
+
+      - name: Register AppProjects
+        run: |
+          echo "Applying AppProjects: finsights-infra & finsights-platform..."
+          kubectl apply -f bootstrap/02-projects/appproject.yaml
+
+      - name: Deploy Root Applications (App-of-Apps)
+        run: |
+          echo "Triggering Root App-of-Apps..."
+          kubectl apply -f bootstrap/03-apps/root-infra-addons.yaml
+          kubectl apply -f bootstrap/03-apps/root-platform-apps.yaml
+
+      - name: Summary & Access Information
+        run: |
+          echo "=========================================================="
+          echo "🎉 GitOps Bootstrap & Sync Completed!"
+          echo "=========================================================="
+          kubectl get applications -n argocd
+          echo ""
+          echo "🌐 ArgoCD Web UI:  http://103.249.117.232:30200"
+          echo "🌐 Headlamp UI:    http://103.249.117.232:32003"
+          echo "=========================================================="

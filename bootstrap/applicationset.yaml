@@ -1,0 +1,43 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: finsights-addons
+  namespace: argocd
+spec:
+  goTemplate: true
+  generators:
+    - git:
+        repoURL: https://github.com/finsights-hub/finsights-gitops-infra.git
+        revision: main
+        directories:
+          - path: "addons/*"
+
+  template:
+    metadata:
+      name: '{{ index .path.segments 1 }}'
+    spec:
+      project: finsights-infra
+      source:
+        repoURL: https://github.com/finsights-hub/finsights-gitops-infra.git
+        targetRevision: main
+        path: '{{ .path.path }}'
+        helm:
+          valueFiles:
+            - values-dev.yaml
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{ index .path.segments 1 }}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        retry:
+          limit: 5
+          backoff:
+            duration: 15s
+            factor: 2
+            maxDuration: 5m
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true
+          - RespectIgnoreDifferences=true

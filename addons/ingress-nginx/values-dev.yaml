@@ -1,0 +1,42 @@
+# ==============================================================================
+# Finsights Ingress-Nginx Controller Configuration
+# Environment: Dev / Production K3s (2 VPS Nodes)
+# ==============================================================================
+
+controller:
+  kind: DaemonSet
+  
+  ingressClassResource:
+    name: nginx
+    enabled: true
+    default: true
+    controllerValue: "k8s.io/ingress-nginx"
+
+  service:
+    type: NodePort
+    nodePorts:
+      http: 30080
+      https: 30443
+    externalTrafficPolicy: Local
+
+  # Disable admission webhooks during initial bootstrap to prevent dependency deadlocks
+  admissionWebhooks:
+    enabled: false
+
+  allowSnippetAnnotations: true
+
+  # Resource limits tailored for VPS nodes (saving memory for databases & apps)
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  metrics:
+    enabled: false
+
+  # Optional TCP proxying through Ingress
+  tcp:
+    31679: "finsights-platform/redis:6379"

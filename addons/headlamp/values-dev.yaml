@@ -1,0 +1,51 @@
+# ==============================================================================
+# Finsights Headlamp Dashboard Configuration
+# Environment: Dev / Production K3s
+# ==============================================================================
+
+# Custom arguments for Headlamp
+config:
+  oidc:
+    clientID: ""
+    clientSecret: ""
+    issuerURL: ""
+  # Stop the Headlamp UI from logging out every 24 hours (Set session TTL to 30 days)
+  extraArgs:
+    - "-session-ttl=2592000"
+    - "-dev"
+
+# 1. Cluster Admin Service Account
+serviceAccount:
+  create: true
+  name: headlamp-admin
+
+# 2. Automatically bind ServiceAccount to cluster-admin privileges
+clusterRoleBinding:
+  create: true
+
+# 3. Create persistent long-lived ServiceAccount Token Secret for instant login
+extraObjects:
+  # Secret Token for headlamp-admin
+  - apiVersion: v1
+    kind: Secret
+    metadata:
+      name: headlamp-admin-token
+      annotations:
+        kubernetes.io/service-account.name: "headlamp-admin"
+    type: kubernetes.io/service-account-token
+
+# 4. Service exposure via NodePort (Port 32003 on both VPS nodes)
+service:
+  type: NodePort
+  port: 80
+  targetPort: 4466
+  nodePort: 32003
+
+# Resource requests tailored for VPS nodes
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
