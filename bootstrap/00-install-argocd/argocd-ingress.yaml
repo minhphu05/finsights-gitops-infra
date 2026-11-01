@@ -4,18 +4,12 @@ metadata:
   name: argocd-server-ingress
   namespace: argocd
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
     nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
 spec:
   ingressClassName: nginx
-  tls:
-    - hosts:
-        - argocd.finsights.biz
-      secretName: argocd-server-tls
   rules:
     - host: argocd.finsights.biz
       http:
@@ -26,4 +20,14 @@ spec:
               service:
                 name: argocd-server
                 port:
-                  name: http
+                  number: 80
+    # Catch-all rule for direct access via IP (http://103.249.117.232)
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: argocd-server
+                port:
+                  number: 80

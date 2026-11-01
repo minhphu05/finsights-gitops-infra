@@ -5,6 +5,7 @@ namespace: argocd
 
 resources:
   - upstream-install.yaml
+  - argocd-ingress.yaml
 
 patches:
   - path: argocd-cmd-params-cm-patch.yaml

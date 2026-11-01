@@ -6,6 +6,13 @@
 controller:
   kind: DaemonSet
   
+  # Bind directly to host ports 80 and 443 on VPS nodes for direct browser access
+  hostPort:
+    enabled: true
+    ports:
+      http: 80
+      https: 443
+
   ingressClassResource:
     name: nginx
     enabled: true
@@ -13,11 +20,11 @@ controller:
     controllerValue: "k8s.io/ingress-nginx"
 
   service:
+    enabled: true
     type: NodePort
     nodePorts:
       http: 30080
       https: 30443
-    externalTrafficPolicy: Local
 
   # Disable admission webhooks during initial bootstrap to prevent dependency deadlocks
   admissionWebhooks:
@@ -25,7 +32,7 @@ controller:
 
   allowSnippetAnnotations: true
 
-  # Resource limits tailored for VPS nodes (saving memory for databases & apps)
+  # Resource limits tailored for VPS nodes
   resources:
     requests:
       cpu: 100m
@@ -36,7 +43,3 @@ controller:
 
   metrics:
     enabled: false
-
-  # Optional TCP proxying through Ingress
-  tcp:
-    31679: "finsights-platform/redis:6379"
