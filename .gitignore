@@ -20,3 +20,4 @@ Thumbs.db
 *.pem
 secrets/
 .env
+.env.secrets.example
