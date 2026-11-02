@@ -23,7 +23,7 @@ metadata:
   name: finsights-platform
   namespace: argocd
 spec:
-  description: Finsights Platform Application & Database Services (Redis, APIs, Microservices)
+  description: Finsights Platform Applications, Orchestration & Pipelines (Redis, Dagster, APIs, Microservices)
   sourceRepos:
     - '*'
   destinations:
