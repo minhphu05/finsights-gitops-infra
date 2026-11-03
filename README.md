@@ -94,8 +94,9 @@ kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath="{.data.pas
 
 | Dịch vụ | URL Truy cập | Tài khoản / Xác thực |
 | :--- | :--- | :--- |
-| **ArgoCD Web UI** | `http://103.249.117.232:30200` | User: `admin`<br>Password: Lấy từ `argocd-initial-admin-secret` |
-| **Headlamp K8s UI** | `http://103.249.117.232:32003` | Lấy Token:<br>`kubectl get secret headlamp-admin-token -n platform -o jsonpath="{.data.token}" \| base64 -d` |
+| **ArgoCD Web UI** | `http://103.249.117.232:30200`<br>`https://finsights-prod-node-01.tail73ddb8.ts.net` (Tailscale Cổng 443) | User: `admin`<br>Password: Lấy từ `argocd-initial-admin-secret` |
+| **Headlamp K8s UI** | `http://103.249.117.232:32003`<br>`https://finsights-prod-node-01.tail73ddb8.ts.net:8443` (Tailscale Cổng 8443) | Lấy Token:<br>`kubectl get secret headlamp-admin-token -n platform -o jsonpath="{.data.token}" \| base64 -d` |
+| **Dagster Web UI** | `http://103.249.117.232:31882`<br>`https://finsights-prod-node-01.tail73ddb8.ts.net:10000` (Tailscale Cổng 10000) | Quản trị Orchestration & Data Pipelines |
 | **Ingress HTTP/HTTPS** | `http://103.249.117.232:30080`<br>`https://103.249.117.232:30443` | Cổng tiếp nhận lưu lượng cho toàn bộ domain (`finsights.biz`) |
 
 ---
